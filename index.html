@@ -11817,21 +11817,31 @@ Elm.Main.make = function (_elm) {
    $Random = Elm.Random.make(_elm),
    $Result = Elm.Result.make(_elm),
    $Signal = Elm.Signal.make(_elm),
-   $StartApp$Simple = Elm.StartApp.Simple.make(_elm);
+   $StartApp$Simple = Elm.StartApp.Simple.make(_elm),
+   $String = Elm.String.make(_elm);
    var _op = {};
-   var pickIngredient = F2(function (list,oldSeed) {
+   var pickIngredient = F2(function (list,seed) {
       var randomIndexGenerator = A2($Random.$int,
       0,
       $List.length(list) - 1);
-      var _p0 = A2($Random.generate,randomIndexGenerator,oldSeed);
+      var _p0 = A2($Random.generate,randomIndexGenerator,seed);
       var i = _p0._0;
-      var seed = _p0._1;
+      var s = _p0._1;
       var elem = $List.head(A2($List.drop,i,list));
       return A2($Maybe.withDefault,"",elem);
    });
-   var getNewSeed = function (oldSeed) {
-      var gen = A2($Random.$int,0,10);
-      var _p1 = A2($Random.generate,gen,oldSeed);
+   var pickStuff = F3(function (list,seed,count) {
+      return _U.eq(count,1) ? A2($List._op["::"],
+      A2(pickIngredient,list,seed),
+      _U.list([])) : A2($List._op["::"],
+      A2(pickIngredient,list,seed),
+      A3(pickStuff,list,seed,count - 1));
+   });
+   var getNewSeed = function (model) {
+      var gen = A2($Random.$int,
+      $String.length(model.base),
+      $String.length(model.mainIngredient));
+      var _p1 = A2($Random.generate,gen,model.seed);
       var i = _p1._0;
       var seed = _p1._1;
       return seed;
@@ -11852,7 +11862,10 @@ Elm.Main.make = function (_elm) {
               _U.list([]),
               _U.list([$Html.text(A2($Basics._op["++"],
               "You can use these spices: ",
-              model.spices))]))
+              A3($List.foldl,
+              F2(function (x,y) {    return A2($Basics._op["++"],x,y);}),
+              "",
+              model.spices)))]))
               ,A2($Html.div,
               _U.list([]),
               _U.list([$Html.text(A2($Basics._op["++"],
@@ -11860,23 +11873,34 @@ Elm.Main.make = function (_elm) {
               model.mainIngredient))]))]));
    });
    var model = {base: ""
-               ,spices: ""
+               ,spices: _U.list([])
                ,mainIngredient: ""
                ,seed: $Random.initialSeed(42)};
    var Model = F4(function (a,b,c,d) {
       return {base: a,spices: b,mainIngredient: c,seed: d};
    });
-   var mainIngredient = _U.list(["chicken","lamb","cauliflower"]);
-   var spices = _U.list(["pepper","garam masala"]);
+   var mainIngredient = _U.list(["chicken"
+                                ,"lamb"
+                                ,"cauliflower"
+                                ,"Aubergine"]);
+   var spices = _U.list(["Pfeffer"
+                        ,"Garam Masala"
+                        ,"Kumin"
+                        ,"Kardamom"
+                        ,"Senfsamen"
+                        ,"Zimt"
+                        ,"Gewürznelken"
+                        ,"Chilli"
+                        ,"Ingwer"]);
    var base = _U.list(["onions"
                       ,"coconut milk"
                       ,"tomatoes"
                       ,"joghurt and creme"]);
    var createRandomRecipe = function (model) {
       return {base: A2(pickIngredient,base,model.seed)
-             ,spices: A2(pickIngredient,spices,model.seed)
+             ,spices: A3(pickStuff,spices,model.seed,3)
              ,mainIngredient: A2(pickIngredient,mainIngredient,model.seed)
-             ,seed: getNewSeed(model.seed)};
+             ,seed: getNewSeed(model)};
    };
    var update = F2(function (action,model) {
       var _p2 = action;
@@ -11897,5 +11921,6 @@ Elm.Main.make = function (_elm) {
                              ,update: update
                              ,createRandomRecipe: createRandomRecipe
                              ,getNewSeed: getNewSeed
+                             ,pickStuff: pickStuff
                              ,pickIngredient: pickIngredient};
 };</script></head><body><script type="text/javascript">Elm.fullscreen(Elm.Main)</script></body></html>
