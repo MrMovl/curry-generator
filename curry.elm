@@ -3,22 +3,23 @@ import Html.Attributes exposing (style)
 import Html.Events exposing (onClick)
 import StartApp.Simple as StartApp
 import Random exposing (initialSeed, int, generate, Seed)
-import Time exposing (every)
-import List exposing (foldl)
+import Random.Array exposing (shuffle)
+import List exposing (head, foldl)
+import Array exposing (fromList, slice, toList)
 import String exposing (length)
 
 main =
   StartApp.start { model = model, view = view, update = update }
 
-base = [ "onions", "coconut milk", "tomatoes", "joghurt and creme" ]
-spices = [ "Pfeffer", "Garam Masala", "Kumin", "Kardamom", "Senfsamen", "Zimt", "Gewürznelken", "Chilli", "Ingwer" ]
-mainIngredient = [ "chicken", "lamb", "cauliflower", "Aubergine" ]
+base = fromList [ "onions", "coconut milk", "tomatoes", "joghurt and creme" ]
+spices = fromList [ "Pfeffer", "Garam Masala", "Kumin", "Kardamom", "Senfsamen", "Zimt", "Gewürznelken", "Chilli", "Ingwer" ]
+mainIngredient = fromList [ "chicken", "lamb", "cauliflower", "Aubergine" ]
 
 
 type alias Model = 
-  { base : String
+  { base : Maybe String
   , spices : List String
-  , mainIngredient : String
+  , mainIngredient : Maybe String
   , seed : Seed
   }
 
@@ -47,9 +48,9 @@ update action model =
 
 createRandomRecipe : Model -> Model
 createRandomRecipe model = 
-  { base = pickIngredient base model.seed
-  , spices = pickStuff spices model.seed 3
-  , mainIngredient = pickIngredient mainIngredient model.seed
+  { base = head (pick base model.seed 1)
+  , spices = pick spices model.seed 3
+  , mainIngredient = head (pick mainIngredient model.seed 1)
   , seed = getNewSeed model
   }
 
@@ -62,21 +63,9 @@ getNewSeed model =
   in
     seed
 
-pickStuff : List String -> Seed -> Int -> List String
-pickStuff list seed count =
-  if 
-    count == 1
-  then
-    pickIngredient list seed :: []
-  else
-    pickIngredient list seed :: pickStuff list seed (count - 1)
-
-
-pickIngredient : List String -> Seed -> String
-pickIngredient list seed = 
-  let 
-    randomIndexGenerator = Random.int 0 (List.length list - 1)
-    (i, s) = Random.generate randomIndexGenerator seed
-    elem = List.drop i list |> List.head
+pick : Array.Array String -> Seed -> Int -> List String
+pick input seed count =
+  let
+    (shuffledArray, _) = shuffle seed input
   in
-    (Maybe.withDefault "" elem)
+    toList (slice 0 count shuffledArray)
