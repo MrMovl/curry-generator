@@ -6,7 +6,8 @@ import Random exposing (initialSeed, int, generate, Seed)
 import Random.Array exposing (shuffle)
 import List exposing (head, foldl)
 import Array exposing (fromList, slice, toList)
-import String exposing (length)
+import String exposing (length, dropRight)
+import Maybe exposing (withDefault)
 
 main =
   StartApp.start { model = model, view = view, update = update }
@@ -17,15 +18,15 @@ mainIngredient = fromList [ "chicken", "lamb", "cauliflower", "Aubergine" ]
 
 
 type alias Model = 
-  { base : Maybe String
-  , spices : List String
-  , mainIngredient : Maybe String
+  { base : String
+  , spices : String
+  , mainIngredient : String
   , seed : Seed
   }
 
 model = 
   { base = ""
-  , spices = []
+  , spices = ""
   , mainIngredient = ""
   , seed = initialSeed 42
   }
@@ -34,7 +35,7 @@ view address model =
   div []
     [ button [ onClick address Generate ] [ text "Generate recipe" ]
     , div [] [ text ("This will be you watery base: " ++ model.base) ]
-    , div [] [ text ("You can use these spices: " ++ foldl (++) "" model.spices) ]
+    , div [] [ text ("You can use these spices: " ++ model.spices) ]
     , div [] [ text ("And add this as your main ingredient: " ++ model.mainIngredient) ]
     ]
 
@@ -48,9 +49,9 @@ update action model =
 
 createRandomRecipe : Model -> Model
 createRandomRecipe model = 
-  { base = head (pick base model.seed 1)
+  { base = pick base model.seed 1
   , spices = pick spices model.seed 3
-  , mainIngredient = head (pick mainIngredient model.seed 1)
+  , mainIngredient = pick mainIngredient model.seed 1
   , seed = getNewSeed model
   }
 
@@ -63,9 +64,14 @@ getNewSeed model =
   in
     seed
 
-pick : Array.Array String -> Seed -> Int -> List String
+pick : Array.Array String -> Seed -> Int -> String
 pick input seed count =
   let
     (shuffledArray, _) = shuffle seed input
+    result = toList (slice 0 count shuffledArray)
   in
-    toList (slice 0 count shuffledArray)
+    if count == 1 then withDefault "" (head result) else dropRight 2 (addCommas result)
+
+addCommas : List String -> String
+addCommas list =
+  foldl (\spice acc -> acc ++ (spice ++ ", ")) "" list

@@ -3933,115 +3933,6 @@ Elm.Native.Signal.make = function(localRuntime) {
 		delay: F2(delay)
 	};
 };
-Elm.Native.Time = {};
-
-Elm.Native.Time.make = function(localRuntime)
-{
-	localRuntime.Native = localRuntime.Native || {};
-	localRuntime.Native.Time = localRuntime.Native.Time || {};
-	if (localRuntime.Native.Time.values)
-	{
-		return localRuntime.Native.Time.values;
-	}
-
-	var NS = Elm.Native.Signal.make(localRuntime);
-	var Maybe = Elm.Maybe.make(localRuntime);
-
-
-	// FRAMES PER SECOND
-
-	function fpsWhen(desiredFPS, isOn)
-	{
-		var msPerFrame = 1000 / desiredFPS;
-		var ticker = NS.input('fps-' + desiredFPS, null);
-
-		function notifyTicker()
-		{
-			localRuntime.notify(ticker.id, null);
-		}
-
-		function firstArg(x, y)
-		{
-			return x;
-		}
-
-		// input fires either when isOn changes, or when ticker fires.
-		// Its value is a tuple with the current timestamp, and the state of isOn
-		var input = NS.timestamp(A3(NS.map2, F2(firstArg), NS.dropRepeats(isOn), ticker));
-
-		var initialState = {
-			isOn: false,
-			time: localRuntime.timer.programStart,
-			delta: 0
-		};
-
-		var timeoutId;
-
-		function update(input, state)
-		{
-			var currentTime = input._0;
-			var isOn = input._1;
-			var wasOn = state.isOn;
-			var previousTime = state.time;
-
-			if (isOn)
-			{
-				timeoutId = localRuntime.setTimeout(notifyTicker, msPerFrame);
-			}
-			else if (wasOn)
-			{
-				clearTimeout(timeoutId);
-			}
-
-			return {
-				isOn: isOn,
-				time: currentTime,
-				delta: (isOn && !wasOn) ? 0 : currentTime - previousTime
-			};
-		}
-
-		return A2(
-			NS.map,
-			function(state) { return state.delta; },
-			A3(NS.foldp, F2(update), update(input.value, initialState), input)
-		);
-	}
-
-
-	// EVERY
-
-	function every(t)
-	{
-		var ticker = NS.input('every-' + t, null);
-		function tellTime()
-		{
-			localRuntime.notify(ticker.id, null);
-		}
-		var clock = A2(NS.map, fst, NS.timestamp(ticker));
-		setInterval(tellTime, t);
-		return clock;
-	}
-
-
-	function fst(pair)
-	{
-		return pair._0;
-	}
-
-
-	function read(s)
-	{
-		var t = Date.parse(s);
-		return isNaN(t) ? Maybe.Nothing : Maybe.Just(t);
-	}
-
-	return localRuntime.Native.Time.values = {
-		fpsWhen: F2(fpsWhen),
-		every: every,
-		toDate: function(t) { return new Date(t); },
-		read: read
-	};
-};
 Elm.Native.Transform2D = {};
 Elm.Native.Transform2D.make = function(localRuntime) {
 	localRuntime.Native = localRuntime.Native || {};
@@ -7224,60 +7115,6 @@ Elm.Signal.make = function (_elm) {
                                ,message: message
                                ,forwardTo: forwardTo
                                ,Mailbox: Mailbox};
-};Elm.Time = Elm.Time || {};
-Elm.Time.make = function (_elm) {
-   "use strict";
-   _elm.Time = _elm.Time || {};
-   if (_elm.Time.values) return _elm.Time.values;
-   var _U = Elm.Native.Utils.make(_elm),
-   $Basics = Elm.Basics.make(_elm),
-   $Native$Signal = Elm.Native.Signal.make(_elm),
-   $Native$Time = Elm.Native.Time.make(_elm),
-   $Signal = Elm.Signal.make(_elm);
-   var _op = {};
-   var delay = $Native$Signal.delay;
-   var since = F2(function (time,signal) {
-      var stop = A2($Signal.map,
-      $Basics.always(-1),
-      A2(delay,time,signal));
-      var start = A2($Signal.map,$Basics.always(1),signal);
-      var delaydiff = A3($Signal.foldp,
-      F2(function (x,y) {    return x + y;}),
-      0,
-      A2($Signal.merge,start,stop));
-      return A2($Signal.map,
-      F2(function (x,y) {    return !_U.eq(x,y);})(0),
-      delaydiff);
-   });
-   var timestamp = $Native$Signal.timestamp;
-   var every = $Native$Time.every;
-   var fpsWhen = $Native$Time.fpsWhen;
-   var fps = function (targetFrames) {
-      return A2(fpsWhen,targetFrames,$Signal.constant(true));
-   };
-   var inMilliseconds = function (t) {    return t;};
-   var millisecond = 1;
-   var second = 1000 * millisecond;
-   var minute = 60 * second;
-   var hour = 60 * minute;
-   var inHours = function (t) {    return t / hour;};
-   var inMinutes = function (t) {    return t / minute;};
-   var inSeconds = function (t) {    return t / second;};
-   return _elm.Time.values = {_op: _op
-                             ,millisecond: millisecond
-                             ,second: second
-                             ,minute: minute
-                             ,hour: hour
-                             ,inMilliseconds: inMilliseconds
-                             ,inSeconds: inSeconds
-                             ,inMinutes: inMinutes
-                             ,inHours: inHours
-                             ,fps: fps
-                             ,fpsWhen: fpsWhen
-                             ,every: every
-                             ,timestamp: timestamp
-                             ,delay: delay
-                             ,since: since};
 };Elm.Native.String = {};
 
 Elm.Native.String.make = function(localRuntime) {
@@ -9371,6 +9208,33 @@ Elm.Random.make = function (_elm) {
                                ,maxInt: maxInt
                                ,generate: generate
                                ,initialSeed: initialSeed};
+};Elm.Trampoline = Elm.Trampoline || {};
+Elm.Trampoline.make = function (_elm) {
+   "use strict";
+   _elm.Trampoline = _elm.Trampoline || {};
+   if (_elm.Trampoline.values) return _elm.Trampoline.values;
+   var _U = Elm.Native.Utils.make(_elm);
+   var _op = {};
+   var trampoline = function (tramp) {
+      trampoline: while (true) {
+         var _p0 = tramp;
+         if (_p0.ctor === "Done") {
+               return _p0._0;
+            } else {
+               var _v1 = _p0._0({ctor: "_Tuple0"});
+               tramp = _v1;
+               continue trampoline;
+            }
+      }
+   };
+   var Continue = function (a) {
+      return {ctor: "Continue",_0: a};
+   };
+   var Done = function (a) {    return {ctor: "Done",_0: a};};
+   return _elm.Trampoline.values = {_op: _op
+                                   ,trampoline: trampoline
+                                   ,Done: Done
+                                   ,Continue: Continue};
 };(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 
 },{}],2:[function(require,module,exports){
@@ -11802,12 +11666,104 @@ Elm.StartApp.Simple.make = function (_elm) {
    return _elm.StartApp.Simple.values = {_op: _op
                                         ,Config: Config
                                         ,start: start};
+};Elm.Random = Elm.Random || {};
+Elm.Random.Array = Elm.Random.Array || {};
+Elm.Random.Array.make = function (_elm) {
+   "use strict";
+   _elm.Random = _elm.Random || {};
+   _elm.Random.Array = _elm.Random.Array || {};
+   if (_elm.Random.Array.values) return _elm.Random.Array.values;
+   var _U = Elm.Native.Utils.make(_elm),
+   $Array = Elm.Array.make(_elm),
+   $Basics = Elm.Basics.make(_elm),
+   $Debug = Elm.Debug.make(_elm),
+   $List = Elm.List.make(_elm),
+   $Maybe = Elm.Maybe.make(_elm),
+   $Random = Elm.Random.make(_elm),
+   $Result = Elm.Result.make(_elm),
+   $Signal = Elm.Signal.make(_elm),
+   $Trampoline = Elm.Trampoline.make(_elm);
+   var _op = {};
+   var choose = F2(function (seed,arr) {
+      if ($Array.isEmpty(arr)) return {ctor: "_Tuple3"
+                                      ,_0: $Maybe.Nothing
+                                      ,_1: seed
+                                      ,_2: arr}; else {
+            var lastIndex = $Array.length(arr) - 1;
+            var intGen = A2($Random.$int,0,lastIndex);
+            var _p0 = A2($Random.generate,intGen,seed);
+            var index = _p0._0;
+            var seed$ = _p0._1;
+            var front = A3($Array.slice,0,index,arr);
+            var back = _U.eq(index,
+            lastIndex) ? $Array.empty : A3($Array.slice,
+            index + 1,
+            $Array.length(arr),
+            arr);
+            return {ctor: "_Tuple3"
+                   ,_0: A2($Array.get,index,arr)
+                   ,_1: seed$
+                   ,_2: A2($Array.append,front,back)};
+         }
+   });
+   var shuffle = F2(function (seed,arr) {
+      if ($Array.isEmpty(arr)) return {ctor: "_Tuple2"
+                                      ,_0: arr
+                                      ,_1: seed}; else {
+            var helper = function (_p1) {
+               var _p2 = _p1;
+               var _p9 = _p2._1;
+               var _p8 = _p2._0;
+               var _p7 = _p2._2;
+               var _p3 = A2(choose,_p8,_p7);
+               var m_val = _p3._0;
+               var s$ = _p3._1;
+               var a$ = _p3._2;
+               var _p4 = m_val;
+               if (_p4.ctor === "Nothing") {
+                     return $Trampoline.Done({ctor: "_Tuple3"
+                                             ,_0: _p8
+                                             ,_1: _p9
+                                             ,_2: _p7});
+                  } else {
+                     return $Trampoline.Continue(function (_p5) {
+                        var _p6 = _p5;
+                        return helper({ctor: "_Tuple3"
+                                      ,_0: s$
+                                      ,_1: A2($List._op["::"],_p4._0,_p9)
+                                      ,_2: a$});
+                     });
+                  }
+            };
+            var _p10 = $Trampoline.trampoline(helper({ctor: "_Tuple3"
+                                                     ,_0: seed
+                                                     ,_1: _U.list([])
+                                                     ,_2: arr}));
+            var seed$ = _p10._0;
+            var shuffled = _p10._1;
+            return {ctor: "_Tuple2"
+                   ,_0: $Array.fromList(shuffled)
+                   ,_1: seed$};
+         }
+   });
+   var sample = F2(function (seed,arr) {
+      var intGen = A2($Random.$int,0,$Array.length(arr) - 1);
+      var _p11 = A2($Random.generate,intGen,seed);
+      var index = _p11._0;
+      var seed$ = _p11._1;
+      return {ctor: "_Tuple2",_0: A2($Array.get,index,arr),_1: seed$};
+   });
+   return _elm.Random.Array.values = {_op: _op
+                                     ,sample: sample
+                                     ,choose: choose
+                                     ,shuffle: shuffle};
 };Elm.Main = Elm.Main || {};
 Elm.Main.make = function (_elm) {
    "use strict";
    _elm.Main = _elm.Main || {};
    if (_elm.Main.values) return _elm.Main.values;
    var _U = Elm.Native.Utils.make(_elm),
+   $Array = Elm.Array.make(_elm),
    $Basics = Elm.Basics.make(_elm),
    $Debug = Elm.Debug.make(_elm),
    $Html = Elm.Html.make(_elm),
@@ -11815,27 +11771,32 @@ Elm.Main.make = function (_elm) {
    $List = Elm.List.make(_elm),
    $Maybe = Elm.Maybe.make(_elm),
    $Random = Elm.Random.make(_elm),
+   $Random$Array = Elm.Random.Array.make(_elm),
    $Result = Elm.Result.make(_elm),
    $Signal = Elm.Signal.make(_elm),
    $StartApp$Simple = Elm.StartApp.Simple.make(_elm),
    $String = Elm.String.make(_elm);
    var _op = {};
-   var pickIngredient = F2(function (list,seed) {
-      var randomIndexGenerator = A2($Random.$int,
+   var addCommas = function (list) {
+      return A3($List.foldl,
+      F2(function (spice,acc) {
+         return A2($Basics._op["++"],
+         acc,
+         A2($Basics._op["++"],spice,", "));
+      }),
+      "",
+      list);
+   };
+   var pick = F3(function (input,seed,count) {
+      var _p0 = A2($Random$Array.shuffle,seed,input);
+      var shuffledArray = _p0._0;
+      var result = $Array.toList(A3($Array.slice,
       0,
-      $List.length(list) - 1);
-      var _p0 = A2($Random.generate,randomIndexGenerator,seed);
-      var i = _p0._0;
-      var s = _p0._1;
-      var elem = $List.head(A2($List.drop,i,list));
-      return A2($Maybe.withDefault,"",elem);
-   });
-   var pickStuff = F3(function (list,seed,count) {
-      return _U.eq(count,1) ? A2($List._op["::"],
-      A2(pickIngredient,list,seed),
-      _U.list([])) : A2($List._op["::"],
-      A2(pickIngredient,list,seed),
-      A3(pickStuff,list,seed,count - 1));
+      count,
+      shuffledArray));
+      return _U.eq(count,1) ? A2($Maybe.withDefault,
+      "",
+      $List.head(result)) : A2($String.dropRight,2,addCommas(result));
    });
    var getNewSeed = function (model) {
       var gen = A2($Random.$int,
@@ -11862,10 +11823,7 @@ Elm.Main.make = function (_elm) {
               _U.list([]),
               _U.list([$Html.text(A2($Basics._op["++"],
               "You can use these spices: ",
-              A3($List.foldl,
-              F2(function (x,y) {    return A2($Basics._op["++"],x,y);}),
-              "",
-              model.spices)))]))
+              model.spices))]))
               ,A2($Html.div,
               _U.list([]),
               _U.list([$Html.text(A2($Basics._op["++"],
@@ -11873,33 +11831,33 @@ Elm.Main.make = function (_elm) {
               model.mainIngredient))]))]));
    });
    var model = {base: ""
-               ,spices: _U.list([])
+               ,spices: ""
                ,mainIngredient: ""
                ,seed: $Random.initialSeed(42)};
    var Model = F4(function (a,b,c,d) {
       return {base: a,spices: b,mainIngredient: c,seed: d};
    });
-   var mainIngredient = _U.list(["chicken"
-                                ,"lamb"
-                                ,"cauliflower"
-                                ,"Aubergine"]);
-   var spices = _U.list(["Pfeffer"
-                        ,"Garam Masala"
-                        ,"Kumin"
-                        ,"Kardamom"
-                        ,"Senfsamen"
-                        ,"Zimt"
-                        ,"Gewürznelken"
-                        ,"Chilli"
-                        ,"Ingwer"]);
-   var base = _U.list(["onions"
-                      ,"coconut milk"
-                      ,"tomatoes"
-                      ,"joghurt and creme"]);
+   var mainIngredient = $Array.fromList(_U.list(["chicken"
+                                                ,"lamb"
+                                                ,"cauliflower"
+                                                ,"Aubergine"]));
+   var spices = $Array.fromList(_U.list(["Pfeffer"
+                                        ,"Garam Masala"
+                                        ,"Kumin"
+                                        ,"Kardamom"
+                                        ,"Senfsamen"
+                                        ,"Zimt"
+                                        ,"Gewürznelken"
+                                        ,"Chilli"
+                                        ,"Ingwer"]));
+   var base = $Array.fromList(_U.list(["onions"
+                                      ,"coconut milk"
+                                      ,"tomatoes"
+                                      ,"joghurt and creme"]));
    var createRandomRecipe = function (model) {
-      return {base: A2(pickIngredient,base,model.seed)
-             ,spices: A3(pickStuff,spices,model.seed,3)
-             ,mainIngredient: A2(pickIngredient,mainIngredient,model.seed)
+      return {base: A3(pick,base,model.seed,1)
+             ,spices: A3(pick,spices,model.seed,3)
+             ,mainIngredient: A3(pick,mainIngredient,model.seed,1)
              ,seed: getNewSeed(model)};
    };
    var update = F2(function (action,model) {
@@ -11921,6 +11879,6 @@ Elm.Main.make = function (_elm) {
                              ,update: update
                              ,createRandomRecipe: createRandomRecipe
                              ,getNewSeed: getNewSeed
-                             ,pickStuff: pickStuff
-                             ,pickIngredient: pickIngredient};
+                             ,pick: pick
+                             ,addCommas: addCommas};
 };</script></head><body><script type="text/javascript">Elm.fullscreen(Elm.Main)</script></body></html>
