@@ -11780,9 +11780,13 @@ Elm.Main.make = function (_elm) {
    var addCommas = function (list) {
       return A3($List.foldl,
       F2(function (spice,acc) {
-         return A2($Basics._op["++"],
+         return A2(F2(function (x,y) {
+            return A2($Basics._op["++"],x,y);
+         }),
          acc,
-         A2($Basics._op["++"],spice,", "));
+         A2(F2(function (x,y) {    return A2($Basics._op["++"],x,y);}),
+         spice,
+         ", "));
       }),
       "",
       list);
@@ -11830,10 +11834,6 @@ Elm.Main.make = function (_elm) {
               "And add this as your main ingredient: ",
               model.mainIngredient))]))]));
    });
-   var model = {base: ""
-               ,spices: ""
-               ,mainIngredient: ""
-               ,seed: $Random.initialSeed(42)};
    var Model = F4(function (a,b,c,d) {
       return {base: a,spices: b,mainIngredient: c,seed: d};
    });
@@ -11847,13 +11847,17 @@ Elm.Main.make = function (_elm) {
                                         ,"Kardamom"
                                         ,"Senfsamen"
                                         ,"Zimt"
-                                        ,"Gew√ºrznelken"
+                                        ,"GewÅrznelken"
                                         ,"Chilli"
                                         ,"Ingwer"]));
    var base = $Array.fromList(_U.list(["onions"
                                       ,"coconut milk"
                                       ,"tomatoes"
                                       ,"joghurt and creme"]));
+   var model = {base: A3(pick,base,model.seed,1)
+               ,spices: A3(pick,spices,model.seed,3)
+               ,mainIngredient: A3(pick,mainIngredient,model.seed,1)
+               ,seed: $Random.initialSeed(42)};
    var createRandomRecipe = function (model) {
       return {base: A3(pick,base,model.seed,1)
              ,spices: A3(pick,spices,model.seed,3)

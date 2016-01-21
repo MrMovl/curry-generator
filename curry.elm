@@ -28,9 +28,9 @@ type alias Model =
 
 -- initial model
 model = 
-  { base = ""
-  , spices = ""
-  , mainIngredient = ""
+  { base = pick base model.seed 1
+  , spices = pick spices model.seed 3
+  , mainIngredient = pick mainIngredient model.seed 1
   , seed = initialSeed 42
   }
 
@@ -76,9 +76,14 @@ pick input seed count =
     (shuffledArray, _) = shuffle seed input
     result = toList (slice 0 count shuffledArray)
   in
-    if count == 1 then withDefault "" (head result) else dropRight 2 (addCommas result)
+    if count == 1 
+    then head result |> withDefault "" 
+    else addCommas result |> dropRight 2
 
 -- the menial task of prettifying a list of stuff into a string...
 addCommas : List String -> String
 addCommas list =
-  foldl (\spice acc -> acc ++ (spice ++ ", ")) "" list
+  foldl 
+    (\spice acc -> (++) spice ", " |> (++) acc) 
+    "" 
+    list
