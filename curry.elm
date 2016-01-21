@@ -13,9 +13,14 @@ main =
   StartApp.start { model = model, view = view, update = update }
 
 -- My lists the ingredients
-base = fromList [ "onions", "coconut milk", "tomatoes", "joghurt and creme" ]
-spices = fromList [ "Pfeffer", "Garam Masala", "Kumin", "Kardamom", "Senfsamen", "Zimt", "Gewürznelken", "Chilli", "Ingwer" ]
-mainIngredient = fromList [ "chicken", "lamb", "cauliflower", "Aubergine" ]
+base = 
+  fromList [ "onions", "coconut milk", "tomatoes", "joghurt and creme" ]
+
+spices = 
+  fromList [ "Pfeffer", "Garam Masala", "Kumin", "Kardamom", "Senfsamen", "Zimt", "Gewürznelken", "Chilli", "Ingwer" ]
+
+mainIngredient = 
+  fromList [ "chicken", "lamb", "cauliflower", "Aubergine" ]
 
 --------------------------------------------------------------------------
 
@@ -75,17 +80,7 @@ pick input seed count =
     (shuffledArray, _) = ShuffleArray.shuffle seed input 
     result = shuffledArray |> toList |> List.take count
   in
-    if count == 1 
-    then head result |> Maybe.withDefault "" 
-    else addCommas result |> dropRight 2
-
--- the menial task of prettifying a list of stuff into a string...
-addCommas : List String -> String
-addCommas list =
-  foldl 
-    (\string acc -> (++) string ", " |> (++) acc) 
-    "" 
-    list
+    String.join ", " result
 
 --------------------------------------------------------------------------
 
@@ -97,4 +92,3 @@ getNewSeed model =
     (_, seed) = Random.generate gen model.seed
   in
     seed
-
