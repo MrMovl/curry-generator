@@ -14,9 +14,14 @@ main =
   StartApp.start { model = model, view = view, update = update }
 
 -- My lists the ingredients
-base = fromList [ "onions", "coconut milk", "tomatoes", "joghurt and creme" ]
-spices = fromList [ "Pfeffer", "Garam Masala", "Kumin", "Kardamom", "Senfsamen", "Zimt", "Gewürznelken", "Chilli", "Ingwer" ]
-mainIngredient = fromList [ "chicken", "lamb", "cauliflower", "Aubergine" ]
+base = 
+  fromList [ "onions", "coconut milk", "tomatoes", "joghurt and creme" ]
+
+spices = 
+  fromList [ "Pfeffer", "Garam Masala", "Kumin", "Kardamom", "Senfsamen", "Zimt", "Gewürznelken", "Chilli", "Ingwer" ]
+
+mainIngredient = 
+  fromList [ "chicken", "lamb", "cauliflower", "Aubergine" ]
 
 -- Model holds the current recipe and a seed
 type alias Model = 
@@ -74,11 +79,14 @@ pick : Array.Array String -> Seed -> Int -> String
 pick input seed count =
   let
     (shuffledArray, _) = shuffle seed input
-    result = toList (slice 0 count shuffledArray)
+    result = slice 0 count shuffledArray |> toList
   in
-    if count == 1 then withDefault "" (head result) else dropRight 2 (addCommas result)
+    if count == 1 then 
+      head result |> withDefault ""
+    else 
+      addCommas result |> dropRight 2 
 
 -- the menial task of prettifying a list of stuff into a string...
 addCommas : List String -> String
 addCommas list =
-  foldl (\spice acc -> acc ++ (spice ++ ", ")) "" list
+  String.join ", "
