@@ -84,9 +84,9 @@ pick input seed count =
     if count == 1 then 
       head result |> withDefault ""
     else 
-      addCommas result |> dropRight 2 
+      addCommas result
 
 -- the menial task of prettifying a list of stuff into a string...
 addCommas : List String -> String
-addCommas list =
+addCommas =
   String.join ", "
