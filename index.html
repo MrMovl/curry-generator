@@ -11777,6 +11777,15 @@ Elm.Main.make = function (_elm) {
    $StartApp$Simple = Elm.StartApp.Simple.make(_elm),
    $String = Elm.String.make(_elm);
    var _op = {};
+   var getNewSeed = function (model) {
+      var gen = A2($Random.$int,
+      $String.length(model.base),
+      $String.length(model.mainIngredient));
+      var _p0 = A2($Random.generate,gen,model.seed);
+      var i = _p0._0;
+      var seed = _p0._1;
+      return seed;
+   };
    var addCommas = function (list) {
       return A3($List.foldl,
       F2(function (spice,acc) {
@@ -11792,8 +11801,8 @@ Elm.Main.make = function (_elm) {
       list);
    };
    var pick = F3(function (input,seed,count) {
-      var _p0 = A2($Random$Array.shuffle,seed,input);
-      var shuffledArray = _p0._0;
+      var _p1 = A2($Random$Array.shuffle,seed,input);
+      var shuffledArray = _p1._0;
       var result = $Array.toList(A3($Array.slice,
       0,
       count,
@@ -11802,15 +11811,6 @@ Elm.Main.make = function (_elm) {
       "",
       $List.head(result)) : A2($String.dropRight,2,addCommas(result));
    });
-   var getNewSeed = function (model) {
-      var gen = A2($Random.$int,
-      $String.length(model.base),
-      $String.length(model.mainIngredient));
-      var _p1 = A2($Random.generate,gen,model.seed);
-      var i = _p1._0;
-      var seed = _p1._1;
-      return seed;
-   };
    var Generate = {ctor: "Generate"};
    var view = F2(function (address,model) {
       return A2($Html.div,
@@ -11834,6 +11834,10 @@ Elm.Main.make = function (_elm) {
               "And add this as your main ingredient: ",
               model.mainIngredient))]))]));
    });
+   var model = {base: ""
+               ,spices: ""
+               ,mainIngredient: ""
+               ,seed: $Random.initialSeed(42)};
    var Model = F4(function (a,b,c,d) {
       return {base: a,spices: b,mainIngredient: c,seed: d};
    });
@@ -11854,10 +11858,6 @@ Elm.Main.make = function (_elm) {
                                       ,"coconut milk"
                                       ,"tomatoes"
                                       ,"joghurt and creme"]));
-   var model = {base: A3(pick,base,model.seed,1)
-               ,spices: A3(pick,spices,model.seed,3)
-               ,mainIngredient: A3(pick,mainIngredient,model.seed,1)
-               ,seed: $Random.initialSeed(42)};
    var createRandomRecipe = function (model) {
       return {base: A3(pick,base,model.seed,1)
              ,spices: A3(pick,spices,model.seed,3)
@@ -11882,7 +11882,7 @@ Elm.Main.make = function (_elm) {
                              ,Generate: Generate
                              ,update: update
                              ,createRandomRecipe: createRandomRecipe
-                             ,getNewSeed: getNewSeed
                              ,pick: pick
-                             ,addCommas: addCommas};
+                             ,addCommas: addCommas
+                             ,getNewSeed: getNewSeed};
 };</script></head><body><script type="text/javascript">Elm.fullscreen(Elm.Main)</script></body></html>

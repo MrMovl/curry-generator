@@ -18,6 +18,8 @@ base = fromList [ "onions", "coconut milk", "tomatoes", "joghurt and creme" ]
 spices = fromList [ "Pfeffer", "Garam Masala", "Kumin", "Kardamom", "Senfsamen", "Zimt", "Gewürznelken", "Chilli", "Ingwer" ]
 mainIngredient = fromList [ "chicken", "lamb", "cauliflower", "Aubergine" ]
 
+--------------------------------------------------------------------------
+
 -- Model holds the current recipe and a seed
 type alias Model = 
   { base : String
@@ -28,11 +30,13 @@ type alias Model =
 
 -- initial model
 model = 
-  { base = pick base model.seed 1
-  , spices = pick spices model.seed 3
-  , mainIngredient = pick mainIngredient model.seed 1
+  { base = ""
+  , spices = ""
+  , mainIngredient = ""
   , seed = initialSeed 42
   }
+
+--------------------------------------------------------------------------
 
 -- simple view, which needs to get prettier
 view address model =
@@ -43,6 +47,7 @@ view address model =
     , div [] [ text ("And add this as your main ingredient: " ++ model.mainIngredient) ]
     ]
 
+--------------------------------------------------------------------------
 
 type Action = Generate
 
@@ -50,6 +55,8 @@ type Action = Generate
 update action model =
   case action of
     Generate -> createRandomRecipe model
+
+--------------------------------------------------------------------------
 
 -- this creates a new model, but delegates all of the heavy lifting
 createRandomRecipe : Model -> Model
@@ -60,14 +67,7 @@ createRandomRecipe model =
   , seed = getNewSeed model
   }
 
--- uses semi-random data to generate a new seed for the next recipe
-getNewSeed : Model -> Seed
-getNewSeed model =
-  let 
-    gen = Random.int (length model.base) (length model.mainIngredient)
-    (i, seed) = Random.generate gen model.seed
-  in
-    seed
+--------------------------------------------------------------------------
 
 -- generalized function, the only one which has nothing to do with food ;)
 pick : Array.Array String -> Seed -> Int -> String
@@ -87,3 +87,15 @@ addCommas list =
     (\spice acc -> (++) spice ", " |> (++) acc) 
     "" 
     list
+
+--------------------------------------------------------------------------
+
+-- uses semi-random data to generate a new seed for the next recipe
+getNewSeed : Model -> Seed
+getNewSeed model =
+  let 
+    gen = Random.int (length model.base) (length model.mainIngredient)
+    (i, seed) = Random.generate gen model.seed
+  in
+    seed
+
