@@ -11782,19 +11782,18 @@ Elm.Main.make = function (_elm) {
       $String.length(model.base),
       $String.length(model.mainIngredient));
       var _p0 = A2($Random.generate,gen,model.seed);
-      var i = _p0._0;
       var seed = _p0._1;
       return seed;
    };
    var addCommas = function (list) {
       return A3($List.foldl,
-      F2(function (spice,acc) {
+      F2(function (string,acc) {
          return A2(F2(function (x,y) {
             return A2($Basics._op["++"],x,y);
          }),
          acc,
          A2(F2(function (x,y) {    return A2($Basics._op["++"],x,y);}),
-         spice,
+         string,
          ", "));
       }),
       "",
@@ -11803,10 +11802,7 @@ Elm.Main.make = function (_elm) {
    var pick = F3(function (input,seed,count) {
       var _p1 = A2($Random$Array.shuffle,seed,input);
       var shuffledArray = _p1._0;
-      var result = $Array.toList(A3($Array.slice,
-      0,
-      count,
-      shuffledArray));
+      var result = A2($List.take,count,$Array.toList(shuffledArray));
       return _U.eq(count,1) ? A2($Maybe.withDefault,
       "",
       $List.head(result)) : A2($String.dropRight,2,addCommas(result));

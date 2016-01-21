@@ -3,11 +3,10 @@ import Html.Attributes exposing (style)
 import Html.Events exposing (onClick)
 import StartApp.Simple as StartApp
 import Random exposing (initialSeed, int, generate, Seed)
-import Random.Array exposing (shuffle)
+import Random.Array as ShuffleArray
 import List exposing (head, foldl)
 import Array exposing (fromList, slice, toList)
 import String exposing (length, dropRight)
-import Maybe exposing (withDefault)
 
 -- StartApp
 main =
@@ -73,18 +72,18 @@ createRandomRecipe model =
 pick : Array.Array String -> Seed -> Int -> String
 pick input seed count =
   let
-    (shuffledArray, _) = shuffle seed input
-    result = toList (slice 0 count shuffledArray)
+    (shuffledArray, _) = ShuffleArray.shuffle seed input 
+    result = shuffledArray |> toList |> List.take count
   in
     if count == 1 
-    then head result |> withDefault "" 
+    then head result |> Maybe.withDefault "" 
     else addCommas result |> dropRight 2
 
 -- the menial task of prettifying a list of stuff into a string...
 addCommas : List String -> String
 addCommas list =
   foldl 
-    (\spice acc -> (++) spice ", " |> (++) acc) 
+    (\string acc -> (++) string ", " |> (++) acc) 
     "" 
     list
 
@@ -95,7 +94,7 @@ getNewSeed : Model -> Seed
 getNewSeed model =
   let 
     gen = Random.int (length model.base) (length model.mainIngredient)
-    (i, seed) = Random.generate gen model.seed
+    (_, seed) = Random.generate gen model.seed
   in
     seed
 
