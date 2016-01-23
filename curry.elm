@@ -1,14 +1,13 @@
 module CurryGenerator where
 
-import Html exposing (div, button, text)
-import Html.Attributes exposing (style)
-import Html.Events exposing (onClick)
+import Html
+import Html.Attributes as Attr
+import Html.Events as Events
 import StartApp.Simple as StartApp
-import Random exposing (initialSeed, int, generate, Seed)
+import Random
 import Random.Array as ShuffleArray
-import List exposing (head, foldl)
-import Array exposing (fromList, slice, toList)
-import String exposing (length, dropRight)
+import Array
+import String
 
 -- StartApp
 main =
@@ -16,13 +15,13 @@ main =
 
 -- My lists the ingredients
 base = 
-  fromList [ "deglazed onions", "coconut milk", "tomatoes", "joghurt and creme" ]
+  Array.fromList [ "deglazed onions", "coconut milk", "tomatoes", "joghurt and creme" ]
 
 spices = 
-  fromList [ "pepper", "Garam Masala", "cumin", "cardamom", "mustard seeds", "cinnamon", "clove", "chilli", "ginger" ]
+  Array.fromList [ "pepper", "Garam Masala", "cumin", "cardamom", "mustard seeds", "cinnamon", "clove", "chilli", "ginger" ]
 
 mainIngredient = 
-  fromList [ "chicken", "lamb", "cauliflower", "aubergine" ]
+  Array.fromList [ "chicken", "lamb", "cauliflower", "aubergine" ]
 
 --------------------------------------------------------------------------
 
@@ -31,7 +30,7 @@ type alias Model =
   { base : String
   , spices : String
   , mainIngredient : String
-  , seed : Seed
+  , seed : Random.Seed
   }
 
 -- initial model
@@ -39,18 +38,18 @@ model =
   { base = ""
   , spices = ""
   , mainIngredient = ""
-  , seed = initialSeed 42
+  , seed = Random.initialSeed 42
   }
 
 --------------------------------------------------------------------------
 
 -- simple view, which needs to get prettier
 view address model =
-  div []
-    [ button [ onClick address Generate ] [ text "Generate recipe" ]
-    , div [] [ text ("This will be you watery base: " ++ model.base) ]
-    , div [] [ text ("You can use these spices: " ++ model.spices) ]
-    , div [] [ text ("And add this as your main ingredient: " ++ model.mainIngredient) ]
+  Html.div []
+    [ Html.button [ Events.onClick address Generate ] [ Html.text "Generate recipe" ]
+    , Html.div [] [ Html.text ("This will be you watery base: " ++ model.base) ]
+    , Html.div [] [ Html.text ("You can use these spices: " ++ model.spices) ]
+    , Html.div [] [ Html.text ("And add this as your main ingredient: " ++ model.mainIngredient) ]
     ]
 
 --------------------------------------------------------------------------
@@ -76,21 +75,21 @@ createRandomRecipe model =
 --------------------------------------------------------------------------
 
 -- generalized function, the only one which has nothing to do with food ;)
-pick : Array.Array String -> Seed -> Int -> String
+pick : Array.Array String -> Random.Seed -> Int -> String
 pick input seed count =
   let
     (shuffledArray, _) = ShuffleArray.shuffle seed input 
-    result = shuffledArray |> toList |> List.take count
+    result = shuffledArray |> Array.toList |> List.take count
   in
     String.join ", " result
 
 --------------------------------------------------------------------------
 
 -- uses semi-random data to generate a new seed for the next recipe
-getNewSeed : Model -> Seed
+getNewSeed : Model -> Random.Seed
 getNewSeed model =
   let 
-    gen = Random.int (length model.base) (length model.mainIngredient)
+    gen = Random.int (String.length model.base) (String.length model.mainIngredient)
     (_, seed) = Random.generate gen model.seed
   in
     seed
