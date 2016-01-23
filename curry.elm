@@ -1,3 +1,5 @@
+module CurryGenerator where
+
 import Html exposing (div, button, text)
 import Html.Attributes exposing (style)
 import Html.Events exposing (onClick)
@@ -14,13 +16,13 @@ main =
 
 -- My lists the ingredients
 base = 
-  fromList [ "onions", "coconut milk", "tomatoes", "joghurt and creme" ]
+  fromList [ "deglazed onions", "coconut milk", "tomatoes", "joghurt and creme" ]
 
 spices = 
-  fromList [ "Pfeffer", "Garam Masala", "Kumin", "Kardamom", "Senfsamen", "Zimt", "Gewürznelken", "Chilli", "Ingwer" ]
+  fromList [ "pepper", "Garam Masala", "cumin", "cardamom", "mustard seeds", "cinnamon", "clove", "chilli", "ginger" ]
 
 mainIngredient = 
-  fromList [ "chicken", "lamb", "cauliflower", "Aubergine" ]
+  fromList [ "chicken", "lamb", "cauliflower", "aubergine" ]
 
 --------------------------------------------------------------------------
 
