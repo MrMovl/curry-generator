@@ -59,30 +59,35 @@ type Action = Generate
 -- update is simple
 update action model =
   case action of
-    Generate -> createRandomRecipe model
+    Generate -> createRandomRecipe model.seed
 
 --------------------------------------------------------------------------
 
 -- this creates a new model, but delegates all of the heavy lifting
-createRandomRecipe : Model -> Model
-createRandomRecipe model = 
-  { base = pick base model.seed 1
-  , spices = pick spices model.seed 3
-  , mainIngredient = pick mainIngredient model.seed 1
-  , seed = getNewSeed model
-  }
+createRandomRecipe : Random.Seed -> Model
+createRandomRecipe seed =
+  let
+    (newBase, seedOne) = pick base seed 1
+    (newSpices, seedTwo) = pick spices seedOne 3
+    (newMainIngredient, seedThree) = pick mainIngredient seedTwo 1
+  in
+    { base = newBase
+    , spices = newSpices
+    , mainIngredient = newMainIngredient
+    , seed = seedThree
+    }
 
 --------------------------------------------------------------------------
 
 -- generalized function, the only one which has nothing to do with food ;)
-pick : Array.Array String -> Random.Seed -> Int -> String
+pick : Array.Array String -> Random.Seed -> Int -> (String, Random.Seed)
 pick input seed count =
   let
-    (shuffledArray, _) = ShuffleArray.shuffle seed input 
+    (shuffledArray, newSeed) = ShuffleArray.shuffle seed input 
     result = shuffledArray |> Array.toList |> List.take count
+    prettyResult = String.join ", " result
   in
-    String.join ", " result
-
+    (prettyResult, newSeed)
 --------------------------------------------------------------------------
 
 -- uses semi-random data to generate a new seed for the next recipe
