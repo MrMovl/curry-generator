@@ -6,12 +6,7 @@
   <body>
     <script type="text/javascript" src="curry.js"></script>
     <script>
-      // TODO: this should match the Elm module name
-      var curryGenerator = Elm.fullscreen(Elm.CurryGenerator);
-
-      curryGenerator.ports.outgoing.subscribe(function(value) {
-        curryGenerator.ports.newDate.send(Date.now());
-      });
+      var curryGenerator = Elm.fullscreen(Elm.CurryGenerator, {newDate: Date.now()});
     </script>
   </body>
 </html>

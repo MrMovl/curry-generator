@@ -38,7 +38,7 @@ model =
   { base = ""
   , spices = ""
   , mainIngredient = ""
-  , seed = Random.initialSeed 42
+  , seed = Random.initialSeed newDate
   }
 
 --------------------------------------------------------------------------
@@ -53,6 +53,8 @@ view address model =
     ]
 
 --------------------------------------------------------------------------
+
+port newDate : Int
 
 type Action = Generate
 
