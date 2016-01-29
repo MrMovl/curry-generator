@@ -67,9 +67,9 @@ update action model =
 createRandomRecipe : Random.Seed -> Model
 createRandomRecipe seed =
   let
-    (newBase, seedOne) = pick base seed 1
-    (newSpices, seedTwo) = pick spices seedOne 3
-    (newMainIngredient, seedThree) = pick mainIngredient seedTwo 1
+    (newBase, seedOne) = pick base 1 seed
+    (newSpices, seedTwo) = pick spices 3 seedOne
+    (newMainIngredient, seedThree) = pick mainIngredient 1 seedTwo
   in
     { base = newBase
     , spices = newSpices
@@ -80,8 +80,8 @@ createRandomRecipe seed =
 --------------------------------------------------------------------------
 
 -- generalized function, the only one which has nothing to do with food ;)
-pick : Array.Array String -> Random.Seed -> Int -> (String, Random.Seed)
-pick input seed count =
+pick : Array.Array String -> Int -> Random.Seed -> (String, Random.Seed)
+pick input count seed =
   let
     (shuffledArray, newSeed) = ShuffleArray.shuffle seed input 
     result = shuffledArray |> Array.toList |> List.take count
@@ -98,3 +98,4 @@ getNewSeed model =
     (_, seed) = Random.generate gen model.seed
   in
     seed
+
