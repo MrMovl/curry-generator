@@ -25,6 +25,13 @@ mainIngredient =
 
 --------------------------------------------------------------------------
 
+explanation = 
+  "Roast your main ingredient to your liking and put it aside. 
+  Then roast the spices for a short while and deglaze them with your watery base. 
+  After cooking for a short while add your main ingredient and cook until it is tender.
+  Serve with rice or fitting bread."
+
+
 -- Model holds the current recipe and a seed
 type alias Model = 
   { base : String
@@ -46,7 +53,8 @@ model =
 -- simple view, which needs to get prettier
 view address model =
   Html.div []
-    [ Html.button [ Events.onClick address Generate ] [ Html.text "Generate recipe" ]
+    [ Html.div [] [ Html.text explanation ]
+    , Html.button [ Events.onClick address Generate ] [ Html.text "Generate recipe" ]
     , Html.div [] [ Html.text ("This will be you watery base: " ++ model.base) ]
     , Html.div [] [ Html.text ("You can use these spices: " ++ model.spices) ]
     , Html.div [] [ Html.text ("And add this as your main ingredient: " ++ model.mainIngredient) ]
