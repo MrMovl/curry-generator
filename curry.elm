@@ -11,7 +11,7 @@ import String
 
 -- StartApp
 main =
-  StartApp.start { model = model, view = view, update = update }
+  StartApp.start { model = myModel, view = myView, update = myUpdate }
 
 -- My lists the ingredients
 base = 
@@ -23,8 +23,6 @@ spices =
 mainIngredient = 
   Array.fromList [ "chicken", "lamb", "cauliflower", "aubergine" ]
 
---------------------------------------------------------------------------
-
 explanation = 
   "Roast your main ingredient to your liking and put it aside. 
   Then roast the spices for a short while and deglaze them with your watery base. 
@@ -33,57 +31,77 @@ explanation =
 
 
 -- Model holds the current recipe and a seed
-type alias Model = 
+type alias Recipe =
   { base : String
   , spices : String
   , mainIngredient : String
+  }
+
+--------------------------------------------------------------------------
+
+-- Model holds the current recipe and a seed
+type alias Model = 
+  { recipe : Recipe
   , seed : Random.Seed
   }
 
 -- initial model
-model = 
+
+initialRecipe = 
   { base = ""
   , spices = ""
   , mainIngredient = ""
+  }
+
+myModel = 
+  { recipe = initialRecipe
   , seed = Random.initialSeed newDate
   }
 
 --------------------------------------------------------------------------
 
 -- simple view, which needs to get prettier
-view address model =
+myView address model =
   Html.div []
-    [ Html.div [] [ Html.text explanation ]
+    [ Html.text explanation
     , Html.button [ Events.onClick address Generate ] [ Html.text "Generate recipe" ]
-    , Html.div [] [ Html.text ("This will be you watery base: " ++ model.base) ]
-    , Html.div [] [ Html.text ("You can use these spices: " ++ model.spices) ]
-    , Html.div [] [ Html.text ("And add this as your main ingredient: " ++ model.mainIngredient) ]
+    --, Html.button [ Events.onClick address Store ] [ Html.text "Store recipe" ]
+    , recipeView model ]
+    
+recipeView {recipe, seed} =
+  Html.div []
+    [ Html.div [] [ Html.text ("This will be you watery base: " ++ recipe.base) ]
+    , Html.div [] [ Html.text ("You can use these spices: " ++ recipe.spices) ]
+    , Html.div [] [ Html.text ("And add this as your main ingredient: " ++ recipe.mainIngredient) ]
     ]
 
 --------------------------------------------------------------------------
-
+-- simple port to get the current time in here, so this is a pure input port
 port newDate : Int
 
-type Action = Generate
+type Action = Generate --| Store
 
 -- update is simple
-update action model =
+myUpdate action model =
   case action of
     Generate -> createRandomRecipe model.seed
+--    Store -> storeRecipe model
 
 --------------------------------------------------------------------------
 
 -- this creates a new model, but delegates all of the heavy lifting
 createRandomRecipe : Random.Seed -> Model
-createRandomRecipe seed =
+createRandomRecipe initialSeed =
   let
-    (newBase, seedOne) = pick base 1 seed
+    (newBase, seedOne) = pick base 1 initialSeed
     (newSpices, seedTwo) = pick spices 3 seedOne
     (newMainIngredient, seedThree) = pick mainIngredient 1 seedTwo
+    newRecipe = { base = newBase
+      , spices = newSpices
+      , mainIngredient = newMainIngredient
+      }
   in
-    { base = newBase
-    , spices = newSpices
-    , mainIngredient = newMainIngredient
+    { recipe = newRecipe
     , seed = seedThree
     }
 
@@ -102,10 +120,10 @@ pick input count seed =
 
 -- uses semi-random data to generate a new seed for the next recipe
 getNewSeed : Model -> Random.Seed
-getNewSeed model =
-  let 
-    gen = Random.int (String.length model.base) (String.length model.mainIngredient)
-    (_, seed) = Random.generate gen model.seed
+getNewSeed {recipe, seed} =
+  let
+    gen = Random.int (String.length recipe.base) (String.length recipe.mainIngredient)
+    (_, seed) = Random.generate gen seed
   in
     seed
 
