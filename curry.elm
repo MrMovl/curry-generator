@@ -42,6 +42,7 @@ type alias Recipe =
 -- Model holds the current recipe and a seed
 type alias Model = 
   { recipe : Recipe
+  , storedRecipe : Recipe
   , seed : Random.Seed
   }
 
@@ -55,21 +56,29 @@ initialRecipe =
 
 myModel = 
   { recipe = initialRecipe
+  , storedRecipe = initialRecipe
   , seed = Random.initialSeed newDate
   }
 
 --------------------------------------------------------------------------
 
 -- simple view, which needs to get prettier
-myView address model =
-  Html.div []
-    [ Html.text explanation
-    , Html.button [ Events.onClick address Generate ] [ Html.text "Generate recipe" ]
-    --, Html.button [ Events.onClick address Store ] [ Html.text "Store recipe" ]
-    , recipeView model ]
-    
-recipeView {recipe, seed} =
-  Html.div []
+myView address {recipe, storedRecipe, seed} =
+  Html.div [ generalStyle ]
+    [ Html.div [ topStyle ] 
+      [ Html.text explanation
+      , Html.button [ Events.onClick address Generate ] [ Html.text "Generate recipe" ]
+      , Html.button [ Events.onClick address Store ] [ Html.text "Store recipe" ]
+      ]
+    , Html.div []
+      [ Html.div [ leftColumn ]  [ recipeView recipe ]
+      , Html.div [ rightColumn ] [ recipeView storedRecipe ]
+      ]
+    ]
+
+recipeView : Recipe -> Html.Html      
+recipeView recipe =
+  Html.div [recipeStyle]
     [ Html.div [] [ Html.text ("This will be you watery base: " ++ recipe.base) ]
     , Html.div [] [ Html.text ("You can use these spices: " ++ recipe.spices) ]
     , Html.div [] [ Html.text ("And add this as your main ingredient: " ++ recipe.mainIngredient) ]
@@ -79,21 +88,28 @@ recipeView {recipe, seed} =
 -- simple port to get the current time in here, so this is a pure input port
 port newDate : Int
 
-type Action = Generate --| Store
+type Action = Generate | Store
 
 -- update is simple
 myUpdate action model =
   case action of
-    Generate -> createRandomRecipe model.seed
---    Store -> storeRecipe model
+    Generate -> createRandomRecipe model
+    Store -> storeRecipe model
 
 --------------------------------------------------------------------------
+storeRecipe : Model -> Model
+storeRecipe {recipe, storedRecipe, seed} =
+  { recipe = initialRecipe
+  , storedRecipe = recipe
+  , seed = seed
+  }
+
 
 -- this creates a new model, but delegates all of the heavy lifting
-createRandomRecipe : Random.Seed -> Model
-createRandomRecipe initialSeed =
+createRandomRecipe : Model -> Model
+createRandomRecipe {recipe, storedRecipe, seed} =
   let
-    (newBase, seedOne) = pick base 1 initialSeed
+    (newBase, seedOne) = pick base 1 seed
     (newSpices, seedTwo) = pick spices 3 seedOne
     (newMainIngredient, seedThree) = pick mainIngredient 1 seedTwo
     newRecipe = { base = newBase
@@ -102,6 +118,7 @@ createRandomRecipe initialSeed =
       }
   in
     { recipe = newRecipe
+    , storedRecipe = storedRecipe
     , seed = seedThree
     }
 
@@ -116,14 +133,42 @@ pick input count seed =
     prettyResult = String.join ", " result
   in
     (prettyResult, newSeed)
+
 --------------------------------------------------------------------------
 
--- uses semi-random data to generate a new seed for the next recipe
-getNewSeed : Model -> Random.Seed
-getNewSeed {recipe, seed} =
-  let
-    gen = Random.int (String.length recipe.base) (String.length recipe.mainIngredient)
-    (_, seed) = Random.generate gen seed
-  in
-    seed
+generalStyle : Html.Attribute
+generalStyle =
+  Attr.style
+    [ ("font-size", "16px")
+    , ("font-family", "monospace")
+    ]
 
+
+recipeStyle : Html.Attribute
+recipeStyle =
+  Attr.style
+    [ ("display", "inline-block")
+    , ("width", "100%")
+    , ("text-align", "left")
+    ]
+
+leftColumn : Html.Attribute
+leftColumn =
+  Attr.style
+    [ ("float", "left")
+    , ("width", "50%")
+    ]
+
+rightColumn : Html.Attribute
+rightColumn =
+  Attr.style
+    [ ("float", "right")
+    , ("width", "50%")
+    ]
+
+topStyle : Html.Attribute
+topStyle =
+  Attr.style
+    [ ("height", "100px")
+    , ("width", "100%")
+    ]
