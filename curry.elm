@@ -24,11 +24,12 @@ mainIngredient =
   Array.fromList [ "chicken", "lamb", "cauliflower", "aubergine" ]
 
 explanation = 
-  "Roast your main ingredient to your liking and put it aside. 
-  Then roast the spices for a short while and deglaze them with your watery base. 
-  After cooking for a short while add your main ingredient and cook until it is tender.
-  Serve with rice or fitting bread."
-
+  Html.ul []
+    [ Html.li [] [ Html.text "Roast your main ingredient to your liking and put it aside" ]
+    , Html.li [] [ Html.text "Then roast the spices for a short while and deglaze them with your watery base" ]
+    , Html.li [] [ Html.text "After cooking for a short while add your main ingredient and cook until it is tender" ]
+    , Html.li [] [ Html.text "Serve with rice or bread" ]
+    ]
 
 -- Model holds the current recipe and a seed
 type alias Recipe =
@@ -42,7 +43,7 @@ type alias Recipe =
 -- Model holds the current recipe and a seed
 type alias Model = 
   { recipe : Recipe
-  , storedRecipe : Recipe
+  , storedRecipes : List Recipe
   , seed : Random.Seed
   }
 
@@ -56,23 +57,27 @@ initialRecipe =
 
 myModel = 
   { recipe = initialRecipe
-  , storedRecipe = initialRecipe
+  , storedRecipes = [] 
   , seed = Random.initialSeed newDate
   }
 
 --------------------------------------------------------------------------
-
 -- simple view, which needs to get prettier
-myView address {recipe, storedRecipe, seed} =
+myView address {recipe, storedRecipes, seed} =
   Html.div [ generalStyle ]
     [ Html.div [ topStyle ] 
-      [ Html.text explanation
-      , Html.button [ Events.onClick address Generate ] [ Html.text "Generate recipe" ]
-      , Html.button [ Events.onClick address Store ] [ Html.text "Store recipe" ]
+      [ Html.h3 [] [ Html.text "Curry-Generator" ]
+      , explanation
+      , Html.hr [] []
+      , Html.div [] 
+        [ Html.button [ Events.onClick address Generate, buttonStyle ] [ Html.text "Generate recipe" ]
+        , Html.button [ Events.onClick address Store, buttonStyle ] [ Html.text "Store recipe" ]
+        ]
       ]
-    , Html.div []
-      [ Html.div [ leftColumn ]  [ recipeView recipe ]
-      , Html.div [ rightColumn ] [ recipeView storedRecipe ]
+    , Html.div [ recipeContainerStyle ]
+      [ Html.div [ currentRecipeStyle ]  [ recipeView recipe ]
+      , Html.hr [] []
+      , Html.div [ recipeStorageStyle ] ( List.map recipeView storedRecipes )
       ]
     ]
 
@@ -98,16 +103,20 @@ myUpdate action model =
 
 --------------------------------------------------------------------------
 storeRecipe : Model -> Model
-storeRecipe {recipe, storedRecipe, seed} =
+storeRecipe {recipe, storedRecipes, seed} =
   { recipe = initialRecipe
-  , storedRecipe = recipe
+  , storedRecipes = buildRecipeStorage recipe storedRecipes
   , seed = seed
   }
 
+buildRecipeStorage recipe storage =
+  if recipe.base == ""
+    then storage
+    else recipe :: storage
 
 -- this creates a new model, but delegates all of the heavy lifting
 createRandomRecipe : Model -> Model
-createRandomRecipe {recipe, storedRecipe, seed} =
+createRandomRecipe {recipe, storedRecipes, seed} =
   let
     (newBase, seedOne) = pick base 1 seed
     (newSpices, seedTwo) = pick spices 3 seedOne
@@ -118,7 +127,7 @@ createRandomRecipe {recipe, storedRecipe, seed} =
       }
   in
     { recipe = newRecipe
-    , storedRecipe = storedRecipe
+    , storedRecipes = storedRecipes
     , seed = seedThree
     }
 
@@ -141,34 +150,46 @@ generalStyle =
   Attr.style
     [ ("font-size", "16px")
     , ("font-family", "monospace")
+    , ("width", "700px")
     ]
 
 
 recipeStyle : Html.Attribute
 recipeStyle =
   Attr.style
-    [ ("display", "inline-block")
-    , ("width", "100%")
+    [ ("width", "100%")
     , ("text-align", "left")
+    , ("margin-bottom", "15px")
     ]
 
-leftColumn : Html.Attribute
-leftColumn =
+buttonStyle =
   Attr.style
-    [ ("float", "left")
-    , ("width", "50%")
+    [ ("background", "#f9a95e")
+    , ("margin-right", "3px")
+    , ("border-radius", "6px")
+    , ("font-size", "16px")
     ]
 
-rightColumn : Html.Attribute
-rightColumn =
+currentRecipeStyle : Html.Attribute
+currentRecipeStyle =
   Attr.style
-    [ ("float", "right")
-    , ("width", "50%")
+    [ 
+    ]
+
+recipeStorageStyle : Html.Attribute
+recipeStorageStyle =
+  Attr.style
+    [ 
     ]
 
 topStyle : Html.Attribute
 topStyle =
   Attr.style
-    [ ("height", "100px")
+    [ ("margin-bottom", "10px")
     , ("width", "100%")
+    ]
+
+recipeContainerStyle =
+  Attr.style
+    [
     ]
