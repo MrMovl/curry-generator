@@ -66,7 +66,7 @@ myModel =
 myView address {recipe, storedRecipes, seed} =
   Html.div [ generalStyle ]
     [ Html.div [ topStyle ] 
-      [ Html.h3 [] [ Html.text "Curry-Generator" ]
+      [ Html.h3 [] [ Html.text "Curry-Generator ", Html.a [ Attr.href "https://github.com/MrMovl/curry-generator" ] [ Html.text "(source)" ] ]
       , explanation
       , Html.hr [] []
       , Html.div [] 
